@@ -56,7 +56,7 @@
  }
  function pendingDays(t,p,id,now=today()){
   const r=t.RESUMEN.find(v=>v.periodo===p&&v.integrante===id),m=t.INTEGRANTES.find(v=>v.id===id),per=t.PERIODOS.find(v=>v.periodo===p);
-  if(!r||!m||yes(m.titular)||r.estado==='REVISAR'||Number(r.abonado)>=Number(r.cuota)||!per||!yes(per.validado)||!date(per.cargo)||!date(now)||per.cargo>now||t.MOVIMIENTOS.some(v=>v.periodo===p&&v.integrante===id&&v.estado==='REVISAR'))return null;
+  if(!r||!m||yes(m.titular)||r.estado==='REVISAR'||Number(r.abonado)>=Number(r.cuota)||!per||per.estado==='BORRADOR'||!yes(per.validado)||Number(r.cuota)!==Number(per.cuota)||!date(per.cargo)||!date(now)||per.cargo>now||t.MOVIMIENTOS.some(v=>v.periodo===p&&v.integrante===id&&v.estado==='REVISAR'))return null;
   return Math.floor((Date.parse(now+'T12:00:00Z')-Date.parse(per.cargo+'T12:00:00Z'))/86400000);
  }
  const phrases=Object.freeze(['El calendario ya pasó por caja; ahora nos toca a nosotros 😄','La suscripción sigue entrenando su paciencia zen 🧘','Este recordatorio viene sin intereses, pero con buena onda ☕','El robot trabaja duro; su alcancía también tiene hambre 🤖','Pequeño empujón para que las cuentas duerman tranquilas 🌙','La calculadora pide vacaciones: ayudémosla a cerrar el mes 🏖️']);
