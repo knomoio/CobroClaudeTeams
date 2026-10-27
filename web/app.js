@@ -11,7 +11,7 @@ function notice(text){$('notice').textContent=text;}
 function wipe(){
  generation++;clearTimeout(expiry);token='';data=null;selected=null;oauthClient=null; $('connect').onclick=prepareGoogle; $('connect').textContent='Conectar con Google ↗'; $('connect').disabled=false;
  $('composer').close();for(const id of ['message','phrase'])$(id).value='';
- for(const id of ['members','history','gestiones','period','compose-title','reason','compose-status','source','period-info'])$(id).replaceChildren();
+ for(const id of ['members','history','gestiones','period','compose-title','reason','compose-status','source','period-info','collection-alert','collection-count'])$(id).replaceChildren();
  for(const id of ['charged','recovered','pending'])$(id).textContent='—';
  $('files').value='';$('import-gestiones').value='';$('dashboard').hidden=true;$('access').hidden=false;$('logout').hidden=true;
 }
@@ -41,11 +41,18 @@ function render(){
  $('period-info').textContent=per?per.estado+' · Ciclo habitual: 23 · Cargo efectivo: '+(per.cargo||'sin confirmar')+' · Cuota: '+(per.validado==='SI'?currency(per.cuota):'sin validar'):'Sin períodos disponibles.';
  $('members').replaceChildren();
  const rows=data.RESUMEN.filter(r=>r.periodo===p);
+ const ages=rows.map(r=>L.pendingDays(data,p,r.integrante)).filter(v=>v!==null),waiting=ages.filter(v=>v>=2),reminders=data.GESTIONES.filter(g=>g.periodo===p&&g.tipo==='RECORDATORIO');
+ $('collection-alert').textContent=waiting.length?waiting.length+' integrante(s) con saldo pendiente desde hace 2 días o más. Mayor antigüedad: '+Math.max(...waiting)+' días desde el cargo.':'Sin avisos de saldos con 2 días o más de antigüedad verificada.';
+ $('collection-alert').className='banner'+(waiting.length?' collection-warning':'');
+ $('collection-count').textContent='Recordatorios registrados en este período: '+reminders.length+'. Avisos visibles solo dentro del panel, según los datos cargados; no se envían notificaciones al celular. Los días se cuentan desde el cargo efectivo, no desde una fecha de vencimiento.';
  for(const r of rows){
   const m=data.INTEGRANTES.find(m=>m.id===r.integrante),card=el('article',undefined,'member'),top=el('div',undefined,'member-top');
   top.append(el('h3',m.nombre),el('span',m.titular==='SI'?'TITULAR':r.estado,'badge '+r.estado));card.append(top);
   const amounts=el('div',undefined,'amounts');
   for(const [label,value]of [['Cuota',r.cuota],['Abonado',r.abonado],['Pendiente',m.titular==='SI'?0:Math.max(0,Number(r.cuota)-Number(r.abonado))]]){const x=el('div',label);x.append(el('strong',currency(value)));amounts.append(x);}card.append(amounts);
+  const age=L.pendingDays(data,p,m.id);
+  if(age!==null)card.append(el('p',(Number(r.abonado)>0?'Saldo tras pago parcial':'Sin abonos')+' · '+age+' día(s) desde el cargo',age>=2?'pending-age':'hint'));
+  if(m.titular!=='SI'){const sent=reminders.filter(g=>g.integrante===m.id).sort((a,b)=>b.fecha.localeCompare(a.fecha));card.append(el('p','Recordatorios registrados: '+sent.length+(sent.length?' · Último: '+sent[0].fecha:''),'hint'));}
   card.append(el('p','Ingreso: '+m.ingreso+' · Salida: '+(m.salida||'sin fecha'),'hint'));
   const e=L.eligibility(data,p,m.id),link=L.tenpo(data,p,m.id);
   if(link){const a=el('a','Enlace Tenpo verificado ↗');a.href=link;a.target='_blank';a.rel='noopener noreferrer';card.append(a);}else card.append(el('p','Enlace Tenpo verificado no disponible.','hint'));

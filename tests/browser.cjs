@@ -16,15 +16,16 @@ const L=require('../web/logic.js'),{fixture,nativeFixture}=require('./test_logic
  const t=fixture();t.INTEGRANTES[0].nombre='<img src=x onerror=alert(1)>';
  const buffers=Object.entries(L.schemas).map(([name,headers])=>({name:name+'.csv',mimeType:'text/csv',buffer:Buffer.from([headers,...t[name].map(r=>headers.map(h=>r[h]))].map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\r\n'))}));
  await page.locator('#files').setInputFiles(buffers);await page.locator('#dashboard').waitFor();assert.equal(await page.locator('#members img').count(),0);
- assert.equal(await page.locator('#pending').textContent(),'$100');
+ assert.equal(await page.locator('#pending').textContent(),'$100');assert((await page.locator('#collection-alert').textContent()).includes('Mayor antigüedad: 2 días'));assert((await page.locator('.pending-age').textContent()).includes('2 día(s)'));
  for(const [width,height,label]of [[1440,1000,'desktop-dashboard'],[390,844,'mobile-dashboard']]){await page.setViewportSize({width,height});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await page.screenshot({path:'test-results/'+label+'.png',fullPage:true});}
  await page.getByRole('button',{name:'Preparar recordatorio',exact:true}).click();
+ assert((await page.locator('#message').inputValue()).includes('Claude Team'));
  assert(!await page.locator('#whatsapp').isDisabled());assert(await page.locator('#record').isDisabled());
  const popup=page.waitForEvent('popup');await page.route('https://wa.me/**',route=>route.fulfill({body:'Mock WhatsApp: no envío'}));
  await page.locator('#whatsapp').click();const opened=await popup;await opened.close();
  await page.locator('#close').click();assert.equal(await page.locator('#gestiones').innerText(),'Sin gestiones registradas.');
  await page.getByRole('button',{name:'Preparar recordatorio',exact:true}).click();await page.locator('#confirmed').check();await page.locator('#record').click();
- assert((await page.locator('#gestiones').innerText()).includes('Declaración manual'));assert.equal(await page.locator('#pending').textContent(),'$100');
+ assert((await page.locator('#gestiones').innerText()).includes('Declaración manual'));assert((await page.locator('#collection-count').textContent()).includes('período: 1.'));assert.equal(await page.locator('#pending').textContent(),'$100');
  await page.locator('#period').selectOption({label:'2026-11'});assert.equal(await page.locator('#members button:not([disabled])').count(),0);
  await page.locator('#logout').click();assert(!await page.locator('#dashboard').isVisible());assert.equal(await page.locator('#members').innerText(),'');
  assert(!requests.some(u=>u.includes('google')),'Local mode must not contact Google');
