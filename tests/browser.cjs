@@ -32,10 +32,18 @@ const L=require('../web/logic.js'),{fixture,nativeFixture}=require('./test_logic
  await page.route('https://accounts.google.com/gsi/client',route=>route.fulfill({contentType:'application/javascript',body:"window.google={accounts:{oauth2:{initTokenClient:function(c){return {requestAccessToken:function(){c.callback({access_token:'synthetic-test-value',expires_in:60});}}},hasGrantedAllScopes:function(){return true},revoke:function(t,cb){cb()}}}};"}));
  let reads=0;
  await page.route('https://sheets.googleapis.com/**',route=>{reads++;assert.equal(route.request().method(),'GET');assert.equal(route.request().headers().authorization,'Bearer synthetic-test-value');return route.fulfill({json:{valueRanges:Object.values(nativeFixture()).map(values=>({values}))}});});
- await page.locator('#client').fill('synthetic.apps.googleusercontent.com');await page.locator('#sheet').fill('synthetic-sheet-identifier-only');
- await page.locator('#connect').click();await page.getByRole('button',{name:'Autorizar lectura con Google ↗'}).click();await page.locator('#dashboard').waitFor();assert.equal(reads,1);
+ await page.locator('#sheet').fill('synthetic-sheet-identifier-only');
+ await page.locator('#connect').click();await page.getByRole('button',{name:'Entrar con mi cuenta de Google ↗'}).click();await page.locator('#dashboard').waitFor();assert.equal(reads,1);
  await page.clock.fastForward(51000);assert(!await page.locator('#dashboard').isVisible());assert.equal(await page.locator('#message').inputValue(),'');
- await page.reload();assert(await page.locator('#access').isVisible());assert.deepEqual(errors,[]);
+ await page.reload();assert(await page.locator('#access').isVisible());
+ assert.equal(await page.locator('#sheet').inputValue(),'synthetic-sheet-identifier-only');
+ assert.equal(await page.locator('#connection-settings').getAttribute('open'),null);
+ await page.getByRole('button',{name:'Entrar con mi cuenta de Google ↗'}).waitFor();
+ assert.equal(reads,1,'Opening a personal link must not read private Sheets before authorization');
+ await page.getByRole('button',{name:'Entrar con mi cuenta de Google ↗'}).click();
+ await page.locator('#dashboard').waitFor();assert.equal(reads,2);
+ assert.equal(await page.evaluate(()=>Object.keys(localStorage).length+Object.keys(sessionStorage).length),0);
+ assert.deepEqual(errors,[]);
  console.log('Browser: desktop/mobile layout, CSV, XSS, manual WhatsApp, accounting isolation, mocked OAuth read/expiry and reload passed.');
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}
 })().catch(e=>{console.error(e);process.exitCode=1;});

@@ -1,13 +1,16 @@
 'use strict';
-const CONFIG=Object.freeze({ENVIAR_MENSAJES:'NO',scope:'https://www.googleapis.com/auth/spreadsheets.readonly'});
+const CONFIG=Object.freeze({ENVIAR_MENSAJES:'NO',client:'612204309804-5rvlob1qerbepn2qei7d05qh1e5kuua7.apps.googleusercontent.com',scope:'https://www.googleapis.com/auth/spreadsheets.readonly'});
 const L=Cobros,$=id=>document.getElementById(id);
+// The optional fragment stays in the user's link; it is never sent to Pages.
+const accessSheet=new URLSearchParams(location.hash.slice(1)).get('planilla')||'';
+if(/^[\w-]{20,}$/.test(accessSheet)){$('sheet').value=accessSheet;$('connection-settings').open=false;}
 let data=null,source='',loaded=0,selected=null,token='',expiry=null,generation=0,busy=false,oauthClient=null;
 const currency=v=>new Intl.NumberFormat('es-CL',{style:'currency',currency:'CLP',maximumFractionDigits:0}).format(v);
 function el(tag,text,cls){const node=document.createElement(tag);if(text!==undefined)node.textContent=text;if(cls)node.className=cls;return node;}
 function notice(text){$('notice').textContent=text;}
 function wipe(){
- generation++;clearTimeout(expiry);token='';data=null;selected=null;oauthClient=null; $('connect').onclick=prepareGoogle; $('connect').textContent='Continuar con Google ↗'; $('connect').disabled=false;
- $('composer').close();for(const id of ['message','phrase','client','sheet'])$(id).value='';
+ generation++;clearTimeout(expiry);token='';data=null;selected=null;oauthClient=null; $('connect').onclick=prepareGoogle; $('connect').textContent='Conectar con Google ↗'; $('connect').disabled=false;
+ $('composer').close();for(const id of ['message','phrase'])$(id).value='';
  for(const id of ['members','history','gestiones','period','compose-title','reason','compose-status','source','period-info'])$(id).replaceChildren();
  for(const id of ['charged','recovered','pending'])$(id).textContent='—';
  $('files').value='';$('import-gestiones').value='';$('dashboard').hidden=true;$('access').hidden=false;$('logout').hidden=true;
@@ -87,8 +90,9 @@ async function loadGIS(){
 }
 const prepareGoogle=async()=>{
  if(busy)return;
- const client=$('client').value.trim(),sheet=$('sheet').value.trim(),version=++generation;
- if(!/^[\w.-]+\.apps\.googleusercontent\.com$/.test(client)||!/^[\w-]{20,}$/.test(sheet)){notice('Introduce un ID de cliente OAuth válido y el ID de tu planilla. No introduzcas claves secretas.');return;}
+ const client=CONFIG.client,sheet=$('sheet').value.trim(),version=++generation;
+ if(!/^[\w-]{20,}$/.test(sheet)){$('connection-settings').open=true;notice('Pega el ID de tu planilla una sola vez y guarda este acceso en favoritos.');return;}
+ history.replaceState(null,'','#planilla='+encodeURIComponent(sheet));$('connection-settings').open=false;
  busy=true;$('connect').disabled=true;notice('Preparando conexión de solo lectura…');
  try{
   await loadGIS();if(version!==generation)return;
@@ -106,11 +110,14 @@ const prepareGoogle=async()=>{
      const raw={};Object.keys(SheetAdapter.nativeHeaders).forEach((name,i)=>{const rows=body.valueRanges?.[i]?.values;if(!rows||rows.length>=10000)throw Error();raw[name]=rows;});enter(SheetAdapter.adapt(raw,L),'Google Sheets · lectura autorizada');
     }catch{token='';clearTimeout(expiry);notice('No se cargaron datos. Comprueba tu permiso, el formato de las 7 pestañas y la compatibilidad del historial de gestiones. No se han modificado archivos.');}
    }});
-  $('connect').textContent='Autorizar lectura con Google ↗';
-  $('connect').onclick=()=>{notice('');oauthClient.requestAccessToken({prompt:'consent'});};
-  notice('Conexión preparada. Pulsa Autorizar lectura con Google.');
+  $('connect').textContent='Entrar con mi cuenta de Google ↗';
+  $('connect').onclick=()=>{notice('');oauthClient.requestAccessToken({prompt:''});};
+  notice('Listo. Elige tu cuenta de Google para entrar. Guarda esta dirección en favoritos para conservar solo la referencia de tu planilla.');
  }catch{notice('No se pudo cargar Google. La importación local sigue disponible.');}
  finally{busy=false;$('connect').disabled=false;}
 };
 
 $('connect').onclick=prepareGoogle;
+// A configured personal link prepares GIS before the click so the popup can open
+// in the same user gesture. The generic CSV page does not contact Google.
+if(/^[\w-]{20,}$/.test(accessSheet))prepareGoogle();
