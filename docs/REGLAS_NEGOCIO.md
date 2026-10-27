@@ -9,3 +9,7 @@ El ciclo habitual es 23; el cargo efectivo validado gobierna los recordatorios. 
 PAGADO nunca recibe un recordatorio. El agradecimiento necesita un movimiento confirmado positivo aún no agradecido. Las frases usadas por integrante se conservan en GESTIONES. Al agotarse se pide escribir otra; no se reutiliza silenciosamente. El usuario debe incluir la frase declarada en su mensaje. Abrir, copiar y editar no cambian la contabilidad ni registran envío.
 
 El registro requiere declaración explícita de envío manual. Se exporta y se reimporta para mantener no repetición entre sesiones. Sin el historial completo no se garantiza ese control. El panel es de solo lectura contra Sheets: las gestiones se conservan por exportación local y no escriben en la planilla.
+
+## Seguimiento visible de cobros
+
+El panel muestra días naturales desde el cargo efectivo para saldos pendientes y parciales, por integrante y período. No representa una fecha de vencimiento contractual. Se omite para titulares, pagos completos, cargos futuros o sin validar y movimientos en revisión. El aviso visible destaca saldos de dos días o más y el número de recordatorios registrados manualmente. No hay notificaciones externas ni tareas en segundo plano. La vigencia de los saldos depende de volver a conectar o importar. El conteo usa la fecha de Chile y se recalcula mientras la sesión esté abierta. Las gestiones permanecen en memoria: exportarlas e importarlas para conservar su historial entre sesiones.
