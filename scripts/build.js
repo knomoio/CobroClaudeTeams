@@ -10,6 +10,11 @@ if(!fs.readFileSync(path.join(root,'web/app.js'),'utf8').includes("ENVIAR_MENSAJ
 fs.mkdirSync(out,{recursive:true});
 for(const name of fs.readdirSync(out)){const target=path.join(out,name);if(fs.statSync(target).isDirectory())throw Error('Unexpected directory in dist');fs.unlinkSync(target);}
 for(const name of allowed)fs.copyFileSync(path.join(root,'web',name),path.join(out,name));
+// Change each asset URL when its content changes so a reload cannot reuse an
+// earlier message template or mix scripts from different releases.
+const indexPath=path.join(out,'index.html');
+const html=fs.readFileSync(indexPath,'utf8').replace(/(src|href)="\.\/(styles\.css|logic\.js|adapter\.js|app\.js)"/g,(_,attribute,name)=>attribute+'="./'+name+'?v='+crypto.createHash('sha256').update(fs.readFileSync(path.join(out,name))).digest('hex').slice(0,12)+'"');
+fs.writeFileSync(indexPath,html);
 fs.writeFileSync(path.join(out,'.nojekyll'),'');
 console.log('Production: 5 reviewed static files + .nojekyll. No fixtures, CSV or snapshot.');
 for(const name of allowed)console.log(crypto.createHash('sha256').update(fs.readFileSync(path.join(out,name))).digest('hex')+' '+name);

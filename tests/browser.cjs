@@ -19,7 +19,7 @@ const L=require('../web/logic.js'),{fixture,nativeFixture}=require('./test_logic
  assert.equal(await page.locator('#pending').textContent(),'$100');assert((await page.locator('#collection-alert').textContent()).includes('Mayor antigüedad: 2 días'));assert((await page.locator('.pending-age').textContent()).includes('2 día(s)'));
  for(const [width,height,label]of [[1440,1000,'desktop-dashboard'],[390,844,'mobile-dashboard']]){await page.setViewportSize({width,height});assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));await page.screenshot({path:'test-results/'+label+'.png',fullPage:true});}
  await page.getByRole('button',{name:'Preparar recordatorio',exact:true}).click();
- assert((await page.locator('#message').inputValue()).includes('Claude Team'));
+ assert((await page.locator('#message').inputValue()).includes('Claude IA (plan Team)'));
  assert(!await page.locator('#whatsapp').isDisabled());assert(await page.locator('#record').isDisabled());
  const popup=page.waitForEvent('popup');await page.route('https://wa.me/**',route=>route.fulfill({body:'Mock WhatsApp: no envío'}));
  await page.locator('#whatsapp').click();const opened=await popup;await opened.close();
