@@ -2,7 +2,7 @@
 
 ## Configuración pública y privada
 
-No hay .env ni credenciales compiladas. El ID de cliente OAuth es un identificador público, **no un secreto**. El administrador introduce ID de cliente e ID de planilla en la pantalla de acceso por sesión; no se guardan en el navegador ni en Git. No introducir client_secret. Token de acceso solo en memoria y en la cabecera Authorization, nunca en URL, archivos o registros.
+No hay .env ni credenciales compiladas. El ID de cliente OAuth es un identificador público, **no un secreto**. El ID público de cliente de la aplicación está configurado en app.js. El ID de planilla no se incorpora al repositorio: el usuario lo introduce una vez y puede guardar su enlace personal con #planilla=ID en favoritos. El fragmento no se envía a GitHub Pages; identifica el archivo, pero no concede acceso. No compartir ese enlace innecesariamente. No se usan almacenes persistentes del navegador para sesiones o datos. No introducir client_secret. Token de acceso solo en memoria y en la cabecera Authorization, nunca en URL, archivos o registros.
 
 Variable de repositorio ENABLE_PAGES: por defecto ausente (despliegue bloqueado); valor exacto true habilita despliegue de main después de las comprobaciones. No es una contraseña ni protege datos; controla únicamente la publicación del frontend.
 
@@ -14,7 +14,7 @@ Variable de repositorio ENABLE_PAGES: por defecto ausente (despliegue bloqueado)
 4. Solicitar solamente https://www.googleapis.com/auth/spreadsheets.readonly. Este alcance permite leer las planillas accesibles para el usuario, no solo una; el panel únicamente solicita la identificada por él. Los permisos reales del archivo siguen siendo obligatorios.
 5. Mantener la planilla privada y comprobar que una cuenta sin permiso recibe rechazo. El CSV local sigue disponible sin OAuth. El modo local no carga Google Identity Services.
 6. Comprobar el adaptador de encabezados originales y la compatibilidad del historial legado. No cambiar la estructura bancaria de producción para acomodar la interfaz.
-7. En el panel, introducir los dos IDs, pulsar Continuar con Google y después Autorizar lectura. La segunda pulsación permite abrir el consentimiento dentro de una acción directa del usuario. No hay renovación automática ni refresh token.
+7. En el panel, elegir la planilla una vez, pulsar Conectar con Google y después Entrar con mi cuenta de Google. Guardar la dirección resultante en favoritos. Al abrir ese enlace personal, el panel prepara la biblioteca de Google y basta pulsar Entrar con mi cuenta de Google. No consulta Sheets hasta que el usuario autoriza. Sin un enlace personal, la página genérica para CSV no contacta Google. No hay renovación automática ni refresh token.
 
 ## Revisar y publicar
 
